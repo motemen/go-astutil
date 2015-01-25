@@ -81,6 +81,7 @@ func CopyNode(node ast.Node) ast.Node {
 	case *ast.SelectorExpr:
 		copied := *node
 		copied.X = CopyExpr(node.X)
+		copied.Sel = CopyNode(node.Sel).(*ast.Ident)
 		return &copied
 
 	case *ast.StarExpr:
@@ -147,6 +148,16 @@ func CopyNode(node ast.Node) ast.Node {
 
 	case *ast.Ident:
 		copied := *node
+		return &copied
+
+	case *ast.ParenExpr:
+		copied := *node
+		copied.X = CopyExpr(node.X)
+		return &copied
+
+	case *ast.UnaryExpr:
+		copied := *node
+		copied.X = CopyExpr(node.X)
 		return &copied
 
 	case *ast.CaseClause:

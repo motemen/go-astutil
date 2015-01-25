@@ -14,13 +14,15 @@ func TestCopyNode_Expr(t *testing.T) {
 		`x+1`,
 		`foo(a, 1)`,
 		`s[0]`,
+		`s[1:]`,
 		`s[1:3]`,
+		`s[1:3:5]`,
 		`(x)`,
 		`foo.bar`,
 		`*p`,
 		`r.(*os.File)`,
-		`-x`,
-		`x.Meth(*n * 4, s[3:])`,
+		`-n`,
+		`o.Meth(*p * 4, s[3:])`,
 	}
 
 	for _, expr := range exprs {
@@ -60,13 +62,14 @@ func deepCopied(t *testing.T, name string, a, b ast.Node) {
 			// pass
 
 		default:
+			// non-pointer field such as token.Pos, token.Token and bool
 			// t.Logf("DEBUG %s.%s %s: not a pointer type", typ, field.Name, field.Type)
 			continue
 		}
 
 		if !fa.IsValid() && !fb.IsValid() {
 			// nil interface
-			t.Logf("DEBUG %s.%s %s: not valid", typ, field.Name, field.Type)
+			// t.Logf("DEBUG %s.%s %s: not valid", typ, field.Name, field.Type)
 			continue
 		}
 
