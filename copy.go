@@ -12,40 +12,13 @@ func CopyNode(node ast.Node) ast.Node {
 	}
 
 	switch node := node.(type) {
-	case *ast.GenDecl:
+	case *ast.Ident:
 		copied := *node
-		copiedSpecs := make([]ast.Spec, len(node.Specs))
-		for i, spec := range node.Specs {
-			copiedSpecs[i] = CopyNode(spec).(ast.Spec)
-		}
-		copied.Specs = copiedSpecs
 		return &copied
 
 	case *ast.ArrayType:
 		copied := *node
 		copied.Elt = CopyExpr(node.Elt)
-		return &copied
-
-	case *ast.ChanType:
-		copied := *node
-		copied.Value = CopyExpr(node.Value)
-		return &copied
-
-	case *ast.FuncType:
-		copied := *node
-		copied.Params = copyFieldList(node.Params)
-		copied.Results = copyFieldList(node.Results)
-		return &copied
-
-	case *ast.MapType:
-		copied := *node
-		copied.Key = CopyExpr(node.Key)
-		copied.Value = CopyExpr(node.Value)
-		return &copied
-
-	case *ast.StructType:
-		copied := *node
-		copied.Fields = copyFieldList(node.Fields)
 		return &copied
 
 	case *ast.BasicLit:
@@ -64,10 +37,38 @@ func CopyNode(node ast.Node) ast.Node {
 		copied.Fun = CopyExpr(node.Fun)
 		return &copied
 
+	case *ast.ChanType:
+		copied := *node
+		copied.Value = CopyExpr(node.Value)
+		return &copied
+
+	case *ast.FuncType:
+		copied := *node
+		copied.Params = copyFieldList(node.Params)
+		copied.Results = copyFieldList(node.Results)
+		return &copied
+
 	case *ast.IndexExpr:
 		copied := *node
 		copied.X = CopyExpr(node.X)
 		copied.Index = CopyExpr(node.Index)
+		return &copied
+
+	case *ast.MapType:
+		copied := *node
+		copied.Key = CopyExpr(node.Key)
+		copied.Value = CopyExpr(node.Value)
+		return &copied
+
+	case *ast.ParenExpr:
+		copied := *node
+		copied.X = CopyExpr(node.X)
+		return &copied
+
+	case *ast.SelectorExpr:
+		copied := *node
+		copied.X = CopyExpr(node.X)
+		copied.Sel = CopyNode(node.Sel).(*ast.Ident)
 		return &copied
 
 	case *ast.SliceExpr:
@@ -78,15 +79,14 @@ func CopyNode(node ast.Node) ast.Node {
 		copied.Max = CopyExpr(node.Max)
 		return &copied
 
-	case *ast.SelectorExpr:
-		copied := *node
-		copied.X = CopyExpr(node.X)
-		copied.Sel = CopyNode(node.Sel).(*ast.Ident)
-		return &copied
-
 	case *ast.StarExpr:
 		copied := *node
 		copied.X = CopyExpr(node.X)
+		return &copied
+
+	case *ast.StructType:
+		copied := *node
+		copied.Fields = copyFieldList(node.Fields)
 		return &copied
 
 	case *ast.TypeAssertExpr:
@@ -94,6 +94,11 @@ func CopyNode(node ast.Node) ast.Node {
 		if node.Type != nil {
 			copied.Type = CopyExpr(node.Type)
 		}
+		copied.X = CopyExpr(node.X)
+		return &copied
+
+	case *ast.UnaryExpr:
+		copied := *node
 		copied.X = CopyExpr(node.X)
 		return &copied
 
@@ -106,6 +111,12 @@ func CopyNode(node ast.Node) ast.Node {
 	case *ast.BlockStmt:
 		copied := *node
 		copied.List = copyStmtList(node.List)
+		return &copied
+
+	case *ast.CaseClause:
+		copied := *node
+		copied.List = copyExprList(node.List)
+		copied.Body = copyStmtList(node.Body)
 		return &copied
 
 	case *ast.DeclStmt:
@@ -140,30 +151,19 @@ func CopyNode(node ast.Node) ast.Node {
 		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
 		return &copied
 
+	case *ast.GenDecl:
+		copied := *node
+		copiedSpecs := make([]ast.Spec, len(node.Specs))
+		for i, spec := range node.Specs {
+			copiedSpecs[i] = CopyNode(spec).(ast.Spec)
+		}
+		copied.Specs = copiedSpecs
+		return &copied
+
 	case *ast.ValueSpec:
 		copied := *node
 		copied.Type = CopyExpr(node.Type)
 		copied.Values = copyExprList(node.Values)
-		return &copied
-
-	case *ast.Ident:
-		copied := *node
-		return &copied
-
-	case *ast.ParenExpr:
-		copied := *node
-		copied.X = CopyExpr(node.X)
-		return &copied
-
-	case *ast.UnaryExpr:
-		copied := *node
-		copied.X = CopyExpr(node.X)
-		return &copied
-
-	case *ast.CaseClause:
-		copied := *node
-		copied.List = copyExprList(node.List)
-		copied.Body = copyStmtList(node.Body)
 		return &copied
 
 	default:
