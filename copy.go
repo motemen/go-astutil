@@ -12,13 +12,6 @@ func CopyNode(node ast.Node) ast.Node {
 	}
 
 	switch node := node.(type) {
-	// decls
-	case *ast.BadDecl:
-		panic("TODO")
-
-	case *ast.FuncDecl:
-		panic("TODO")
-
 	case *ast.GenDecl:
 		copied := *node
 		copiedSpecs := make([]ast.Spec, len(node.Specs))
@@ -28,7 +21,6 @@ func CopyNode(node ast.Node) ast.Node {
 		copied.Specs = copiedSpecs
 		return &copied
 
-	// types
 	case *ast.ArrayType:
 		copied := *node
 		copied.Elt = CopyNode(node.Elt).(ast.Expr)
@@ -55,10 +47,6 @@ func CopyNode(node ast.Node) ast.Node {
 		copied := *node
 		copied.Fields = copyFieldList(node.Fields)
 		return &copied
-
-	// exprs
-	case *ast.BadExpr:
-		panic("TODO")
 
 	case *ast.BasicLit:
 		return node
@@ -97,7 +85,6 @@ func CopyNode(node ast.Node) ast.Node {
 		copied.X = CopyNode(node.X).(ast.Expr)
 		return &copied
 
-	// stmts
 	case *ast.AssignStmt:
 		copied := *node
 		copied.Lhs = copyExprList(node.Lhs)
