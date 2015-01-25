@@ -1,9 +1,8 @@
 package astutil
 
 import (
-	"testing"
-
 	"reflect"
+	"testing"
 
 	"go/ast"
 	"go/parser"
@@ -65,8 +64,14 @@ func deepCopied(t *testing.T, name string, a, b ast.Node) {
 			continue
 		}
 
+		if !fa.IsValid() && !fb.IsValid() {
+			// nil interface
+			t.Logf("DEBUG %s.%s %s: not valid", typ, field.Name, field.Type)
+			continue
+		}
+
 		if fa.Pointer() == fb.Pointer() {
-			t.Errorf("%s %q: fields equal: %s %#v", typ, name, field.Name, fa.Interface())
+			t.Errorf("%s %q: fields equal: %s (%T)", typ, name, field.Name, fa.Interface())
 			return
 		}
 
