@@ -6,7 +6,24 @@ import (
 
 	"go/ast"
 	"go/parser"
+	"go/token"
 )
+
+func TestCopyNode_Stmt(t *testing.T) {
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, "testdata/eg1.go", nil, parser.Mode(0))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ast.Inspect(f, func(node ast.Node) bool {
+		if _, ok := node.(ast.Stmt); ok {
+			deepCopied(t, "TODO", node, CopyNode(node))
+		}
+
+		return true
+	})
+}
 
 func TestCopyNode_Expr(t *testing.T) {
 	exprs := []string{
