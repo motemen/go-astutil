@@ -1,11 +1,13 @@
 package astutil
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 
 	"go/ast"
 	"go/parser"
+	"go/printer"
 	"go/token"
 )
 
@@ -18,7 +20,9 @@ func TestCopyNode_Stmt(t *testing.T) {
 
 	ast.Inspect(f, func(node ast.Node) bool {
 		if _, ok := node.(ast.Stmt); ok {
-			deepCopied(t, "TODO", node, CopyNode(node))
+			var buf bytes.Buffer
+			printer.Fprint(&buf, fset, node)
+			deepCopied(t, buf.String(), node, CopyNode(node))
 		}
 
 		return true
@@ -90,8 +94,13 @@ func deepCopied(t *testing.T, name string, a, b ast.Node) {
 			continue
 		}
 
+		if fa.Pointer() == 0 {
+			// nil pointer
+			continue
+		}
+
 		if fa.Pointer() == fb.Pointer() {
-			t.Errorf("%s %q: fields equal: %s (%T)", typ, name, field.Name, fa.Interface())
+			t.Errorf("%s %q: fields equal: %s (%#v)", typ, name, field.Name, fa.Interface())
 			return
 		}
 
