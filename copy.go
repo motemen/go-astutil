@@ -29,6 +29,13 @@ func CopyNode(node ast.Node) ast.Node {
 		copied.Elt = copyExpr(node.Elt)
 		return &copied
 
+	case *ast.BadExpr:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		return &copied
+
 	case *ast.BasicLit:
 		if node == nil {
 			return nil
@@ -62,6 +69,33 @@ func CopyNode(node ast.Node) ast.Node {
 		copied.Value = copyExpr(node.Value)
 		return &copied
 
+	case *ast.CompositeLit:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Type = copyExpr(node.Type)
+		copied.Elts = copyExprSlice(node.Elts)
+		return &copied
+
+	case *ast.Ellipsis:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Elt = copyExpr(node.Elt)
+		return &copied
+
+	case *ast.FuncLit:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Type = CopyNode(node.Type).(*ast.FuncType)
+		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
+
+		return &copied
+
 	case *ast.FuncType:
 		if node == nil {
 			return nil
@@ -78,6 +112,23 @@ func CopyNode(node ast.Node) ast.Node {
 		copied := *node
 		copied.X = copyExpr(node.X)
 		copied.Index = copyExpr(node.Index)
+		return &copied
+
+	case *ast.InterfaceType:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Methods = copyFieldList(node.Methods)
+		return &copied
+
+	case *ast.KeyValueExpr:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Key = copyExpr(node.Key)
+		copied.Value = copyExpr(node.Value)
 		return &copied
 
 	case *ast.MapType:
@@ -159,6 +210,13 @@ func CopyNode(node ast.Node) ast.Node {
 		copied.Rhs = copyExprSlice(node.Rhs)
 		return &copied
 
+	case *ast.BadStmt:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		return &copied
+
 	case *ast.BlockStmt:
 		if node == nil {
 			return nil
@@ -167,12 +225,29 @@ func CopyNode(node ast.Node) ast.Node {
 		copied.List = copyStmtSlice(node.List)
 		return &copied
 
+	case *ast.BranchStmt:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Label = copyIdent(node.Label)
+		return &copied
+
 	case *ast.CaseClause:
 		if node == nil {
 			return nil
 		}
 		copied := *node
 		copied.List = copyExprSlice(node.List)
+		copied.Body = copyStmtSlice(node.Body)
+		return &copied
+
+	case *ast.CommClause:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Comm = copyStmt(node.Comm)
 		copied.Body = copyStmtSlice(node.Body)
 		return &copied
 
@@ -185,12 +260,78 @@ func CopyNode(node ast.Node) ast.Node {
 
 		return &copied
 
+	case *ast.DeferStmt:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Call = CopyNode(node.Call).(*ast.CallExpr)
+
+		return &copied
+
+	case *ast.EmptyStmt:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		return &copied
+
 	case *ast.ExprStmt:
 		if node == nil {
 			return nil
 		}
 		copied := *node
 		copied.X = copyExpr(node.X)
+		return &copied
+
+	case *ast.ForStmt:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Init = copyStmt(node.Init)
+		copied.Cond = copyExpr(node.Cond)
+		copied.Post = copyStmt(node.Post)
+		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
+
+		return &copied
+
+	case *ast.GoStmt:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Call = CopyNode(node.Call).(*ast.CallExpr)
+
+		return &copied
+
+	case *ast.IfStmt:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Init = copyStmt(node.Init)
+		copied.Cond = copyExpr(node.Cond)
+		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
+		copied.Else = copyStmt(node.Else)
+
+		return &copied
+
+	case *ast.IncDecStmt:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.X = copyExpr(node.X)
+		return &copied
+
+	case *ast.LabeledStmt:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Label = copyIdent(node.Label)
+		copied.Stmt = copyStmt(node.Stmt)
 		return &copied
 
 	case *ast.RangeStmt:
@@ -213,6 +354,15 @@ func CopyNode(node ast.Node) ast.Node {
 		copied.Results = copyExprSlice(node.Results)
 		return &copied
 
+	case *ast.SelectStmt:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
+
+		return &copied
+
 	case *ast.SendStmt:
 		if node == nil {
 			return nil
@@ -222,6 +372,17 @@ func CopyNode(node ast.Node) ast.Node {
 		copied.Value = copyExpr(node.Value)
 		return &copied
 
+	case *ast.SwitchStmt:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Init = copyStmt(node.Init)
+		copied.Tag = copyExpr(node.Tag)
+		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
+
+		return &copied
+
 	case *ast.TypeSwitchStmt:
 		if node == nil {
 			return nil
@@ -229,6 +390,61 @@ func CopyNode(node ast.Node) ast.Node {
 		copied := *node
 		copied.Init = copyStmt(node.Init)
 		copied.Assign = copyStmt(node.Assign)
+		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
+
+		return &copied
+
+	case *ast.ImportSpec:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Doc = copyCommentGroup(node.Doc)
+		copied.Name = copyIdent(node.Name)
+		copied.Path = CopyNode(node.Path).(*ast.BasicLit)
+		copied.Comment = copyCommentGroup(node.Comment)
+
+		return &copied
+
+	case *ast.TypeSpec:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Doc = copyCommentGroup(node.Doc)
+		copied.Name = copyIdent(node.Name)
+		copied.Type = copyExpr(node.Type)
+		copied.Comment = copyCommentGroup(node.Comment)
+		return &copied
+
+	case *ast.ValueSpec:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Doc = copyCommentGroup(node.Doc)
+		copied.Names = copyIdentSlice(node.Names)
+		copied.Type = copyExpr(node.Type)
+		copied.Values = copyExprSlice(node.Values)
+		copied.Comment = copyCommentGroup(node.Comment)
+		return &copied
+
+	case *ast.BadDecl:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		return &copied
+
+	case *ast.FuncDecl:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		copied.Doc = copyCommentGroup(node.Doc)
+		copied.Recv = copyFieldList(node.Recv)
+		copied.Name = copyIdent(node.Name)
+		copied.Type = CopyNode(node.Type).(*ast.FuncType)
 		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
 
 		return &copied
@@ -250,21 +466,29 @@ func CopyNode(node ast.Node) ast.Node {
 		}
 		return &copied
 
-	case *ast.ValueSpec:
+	case *ast.Comment:
 		if node == nil {
 			return nil
 		}
 		copied := *node
-		copied.Doc = copyCommentGroup(node.Doc)
-		copied.Names = copyIdentSlice(node.Names)
-		copied.Type = copyExpr(node.Type)
-		copied.Values = copyExprSlice(node.Values)
-		copied.Comment = copyCommentGroup(node.Comment)
 		return &copied
 
-	default:
-		fmt.Printf("CopyNode: unexpected node type %T\n", node)
-		return node
+	case *ast.CommentGroup:
+		if node == nil {
+			return nil
+		}
+		copied := *node
+		if node.List == nil {
+			copied.List = nil
+		} else {
+			copied.List = make([]*ast.Comment, len(node.List))
+			for i, x := range node.List {
+				copied.List[i] =
+					CopyNode(x).(*ast.Comment)
+			}
+		}
+		return &copied
+
 	case *ast.Field:
 		if node == nil {
 			return nil
@@ -278,37 +502,20 @@ func CopyNode(node ast.Node) ast.Node {
 
 		return &copied
 
-	case *ast.KeyValueExpr:
+	case *ast.FieldList:
 		if node == nil {
 			return nil
 		}
 		copied := *node
-		copied.Key = copyExpr(node.Key)
-		copied.Value = copyExpr(node.Value)
-		return &copied
-
-	case *ast.IncDecStmt:
-		if node == nil {
-			return nil
+		if node.List == nil {
+			copied.List = nil
+		} else {
+			copied.List = make([]*ast.Field, len(node.List))
+			for i, x := range node.List {
+				copied.List[i] =
+					CopyNode(x).(*ast.Field)
+			}
 		}
-		copied := *node
-		copied.X = copyExpr(node.X)
-		return &copied
-
-	case *ast.CommClause:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Comm = copyStmt(node.Comm)
-		copied.Body = copyStmtSlice(node.Body)
-		return &copied
-
-	case *ast.EmptyStmt:
-		if node == nil {
-			return nil
-		}
-		copied := *node
 		return &copied
 
 	case *ast.File:
@@ -349,52 +556,6 @@ func CopyNode(node ast.Node) ast.Node {
 		}
 		return &copied
 
-	case *ast.LabeledStmt:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Label = copyIdent(node.Label)
-		copied.Stmt = copyStmt(node.Stmt)
-		return &copied
-
-	case *ast.InterfaceType:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Methods = copyFieldList(node.Methods)
-		return &copied
-
-	case *ast.TypeSpec:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Doc = copyCommentGroup(node.Doc)
-		copied.Name = copyIdent(node.Name)
-		copied.Type = copyExpr(node.Type)
-		copied.Comment = copyCommentGroup(node.Comment)
-		return &copied
-
-	case *ast.CompositeLit:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Type = copyExpr(node.Type)
-		copied.Elts = copyExprSlice(node.Elts)
-		return &copied
-
-	case *ast.SelectStmt:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
-
-		return &copied
-
 	case *ast.Package:
 		if node == nil {
 			return nil
@@ -404,169 +565,9 @@ func CopyNode(node ast.Node) ast.Node {
 		copied.Files = copyFileMap(node.Files)
 		return &copied
 
-	case *ast.BadExpr:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		return &copied
-
-	case *ast.FuncLit:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Type = CopyNode(node.Type).(*ast.FuncType)
-		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
-
-		return &copied
-
-	case *ast.DeferStmt:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Call = CopyNode(node.Call).(*ast.CallExpr)
-
-		return &copied
-
-	case *ast.IfStmt:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Init = copyStmt(node.Init)
-		copied.Cond = copyExpr(node.Cond)
-		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
-		copied.Else = copyStmt(node.Else)
-
-		return &copied
-
-	case *ast.BadDecl:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		return &copied
-
-	case *ast.BadStmt:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		return &copied
-
-	case *ast.SwitchStmt:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Init = copyStmt(node.Init)
-		copied.Tag = copyExpr(node.Tag)
-		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
-
-		return &copied
-
-	case *ast.ImportSpec:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Doc = copyCommentGroup(node.Doc)
-		copied.Name = copyIdent(node.Name)
-		copied.Path = CopyNode(node.Path).(*ast.BasicLit)
-		copied.Comment = copyCommentGroup(node.Comment)
-
-		return &copied
-
-	case *ast.FuncDecl:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Doc = copyCommentGroup(node.Doc)
-		copied.Recv = copyFieldList(node.Recv)
-		copied.Name = copyIdent(node.Name)
-		copied.Type = CopyNode(node.Type).(*ast.FuncType)
-		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
-
-		return &copied
-
-	case *ast.BranchStmt:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Label = copyIdent(node.Label)
-		return &copied
-
-	case *ast.Comment:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		return &copied
-
-	case *ast.FieldList:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		if node.List == nil {
-			copied.List = nil
-		} else {
-			copied.List = make([]*ast.Field, len(node.List))
-			for i, x := range node.List {
-				copied.List[i] =
-					CopyNode(x).(*ast.Field)
-			}
-		}
-		return &copied
-
-	case *ast.GoStmt:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Call = CopyNode(node.Call).(*ast.CallExpr)
-
-		return &copied
-
-	case *ast.CommentGroup:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		if node.List == nil {
-			copied.List = nil
-		} else {
-			copied.List = make([]*ast.Comment, len(node.List))
-			for i, x := range node.List {
-				copied.List[i] =
-					CopyNode(x).(*ast.Comment)
-			}
-		}
-		return &copied
-
-	case *ast.Ellipsis:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Elt = copyExpr(node.Elt)
-		return &copied
-
-	case *ast.ForStmt:
-		if node == nil {
-			return nil
-		}
-		copied := *node
-		copied.Init = copyStmt(node.Init)
-		copied.Cond = copyExpr(node.Cond)
-		copied.Post = copyStmt(node.Post)
-		copied.Body = CopyNode(node.Body).(*ast.BlockStmt)
-
-		return &copied
+	default:
+		fmt.Printf("CopyNode: unexpected node type %T\n", node)
+		return node
 
 	}
 }
