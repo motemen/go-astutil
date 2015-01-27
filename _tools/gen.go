@@ -67,17 +67,19 @@ func main() {
 
 		{
 			typeCopierMap := map[string]string{
-				"ast.Node":          "CopyNode",
-				"ast.Expr":          "copyExpr",
-				"ast.Stmt":          "copyStmt",
-				"*ast.CommentGroup": "copyCommentGroup",
-				"[]ast.Stmt":        "copyStmtSlice",
-				"[]ast.Expr":        "copyExprSlice",
-				"[]*ast.Ident":      "copyIdentSlice",
-				"*ast.FieldList":    "copyFieldList",
-				"*ast.Ident":        "copyIdent",
-				"*ast.Object":       "nil",
-				"*ast.Scope":        "nil",
+				"ast.Node":               "CopyNode",
+				"ast.Expr":               "copyExpr",
+				"ast.Stmt":               "copyStmt",
+				"*ast.CommentGroup":      "copyCommentGroup",
+				"*ast.FieldList":         "copyFieldList",
+				"*ast.Ident":             "copyIdent",
+				"[]ast.Stmt":             "copyStmtSlice",
+				"[]ast.Expr":             "copyExprSlice",
+				"[]*ast.Ident":           "copyIdentSlice",
+				"*ast.Object":            "nil",
+				"*ast.Scope":             "nil",
+				"map[string]*ast.File":   "copyFileMap",
+				"map[string]*ast.Object": "",
 			}
 
 			for t, copier := range typeCopierMap {
@@ -100,16 +102,13 @@ func x(node *struct{}) *struct{} {
 	copied := *node
 	// generated code goes here
 	return &copied
-}
-`
+}`
 
 		f, err := parser.ParseFile(token.NewFileSet(), "", code, parser.Mode(0))
 		dieIf(err)
 
 		body := f.Decls[0].(*ast.FuncDecl).Body
 
-		// Begin with
-		//   copied := *node
 		start := body.List[0 : len(body.List)-1]
 		end := body.List[len(body.List)-1]
 
@@ -121,7 +120,7 @@ func x(node *struct{}) *struct{} {
 				continue
 			}
 
-			var copier string
+			var copier string = "TODO"
 			var assertType ast.Expr
 			for typ, c := range typeCopier {
 				if types.Identical(field.Type(), typ) {
@@ -129,7 +128,7 @@ func x(node *struct{}) *struct{} {
 					break
 				}
 			}
-			if copier == "" {
+			if copier == "TODO" {
 				fieldType := field.Type()
 				if types.ConvertibleTo(fieldType, astNodeType) {
 					copier = "CopyNode"
@@ -141,14 +140,15 @@ func x(node *struct{}) *struct{} {
 					continue
 				} else {
 					log.Println("no copier associated:", field.Name(), field.Type())
-					copier = ""
 				}
 			}
 
 			// eg. CopyNode(node.X)
 			var rhs ast.Expr
 
-			if copier == "nil" {
+			if copier == "" {
+				continue
+			} else if copier == "nil" {
 				rhs = ast.NewIdent("nil")
 			} else {
 				rhs = &ast.CallExpr{
